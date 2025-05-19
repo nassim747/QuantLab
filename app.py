@@ -4,6 +4,10 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
 import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBRegressor
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Page config
 st.set_page_config(
@@ -176,11 +180,50 @@ if ticker_symbol:
 
     # ML Model Training placeholder
     with st.expander("🔧 ML Model Training"):
-        st.write(f"Selected model: **{model_type}**")
         if st.button("Train Model"):
+            st.write(f"Selected model: **{model_type}**")
             st.info(f"Training {model_type} on {len(X_train)} samples…")
-            # TODO: Add model.fit / predict / metrics here
-            st.success("✅ Model training placeholder")
+            
+            # Instantiate the appropriate model based on selection
+            if model_type == "Linear Regression":
+                model = LinearRegression()
+            elif model_type == "Random Forest Regressor":
+                model = RandomForestRegressor(n_estimators=100, random_state=42)
+            else:  # XGBoost Regressor
+                model = XGBRegressor(use_label_encoder=False, eval_metric="rmse", random_state=42)
+            
+            # Train the model
+            model.fit(X_train, y_train)
+            
+            # Make predictions
+            y_pred = model.predict(X_test)
+            
+            # Compute evaluation metrics
+            mse = mean_squared_error(y_test, y_pred)
+            rmse = np.sqrt(mse)
+            mae = mean_absolute_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+            
+            # Create DataFrame for plotting
+            df_pred = pd.DataFrame({
+                "Date": X_test.index,
+                "Actual": y_test.values,
+                "Predicted": y_pred
+            })
+            
+            # Display metrics
+            c1, c2, c3 = st.columns(3)
+            c1.metric("RMSE", f"{rmse:.4f}")
+            c2.metric("MAE", f"{mae:.4f}")
+            c3.metric("R²", f"{r2:.4f}")
+            
+            # Plot actual vs predicted
+            fig = px.line(df_pred, x="Date", y=["Actual", "Predicted"],
+                      labels={"value": "Price", "variable": "Series"})
+            fig.update_layout(title="Actual vs Predicted Prices")
+            st.plotly_chart(fig, use_container_width=True)
+            
+            st.success("✅ Model trained successfully!")
 
     # Recent data table
     st.subheader("Recent Price Data")
