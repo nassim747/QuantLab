@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
+import numpy as np
 
 # Page config
 st.set_page_config(
@@ -12,6 +13,31 @@ st.set_page_config(
 
 # Title
 st.title("Stock Price Tracker")
+
+# Add sidebar with ML preprocessing options
+with st.sidebar:
+    st.header("ML Preprocessing")
+    
+    # Forecast horizon slider
+    forecast_horizon = st.slider(
+        "Forecast Horizon (days)",
+        min_value=1,
+        max_value=30,
+        value=5,
+        help="Number of days to forecast into the future"
+    )
+    
+    # Return type selection
+    use_log_returns = st.checkbox(
+        "Use Log Returns",
+        value=False,
+        help="If checked, use log returns. Otherwise, use percent returns."
+    )
+    
+    if use_log_returns:
+        st.info("Using logarithmic returns for calculations")
+    else:
+        st.info("Using percentage returns for calculations")
 
 # Ticker input
 ticker_symbol = st.text_input(
@@ -42,7 +68,49 @@ if ticker_symbol:
             data = data[~data.index.duplicated(keep="first")]
             data = data.sort_index()
 
+            # Create target column by shifting Close prices by -forecast_horizon
+            data["Target"] = data["Close"].shift(-forecast_horizon)
+            
+            # Calculate returns based on user selection
+            if use_log_returns:
+                # Log returns: ln(price_t / price_{t-1})
+                data["LogReturn"] = np.log(data["Close"] / data["Close"].shift(1))
+                data["LogReturn"].fillna(0, inplace=True)
+                feature_col = "LogReturn"
+            else:
+                # Percentage returns: (price_t - price_{t-1}) / price_{t-1}
+                data["Return"] = data["Close"].pct_change()
+                data["Return"].fillna(0, inplace=True)
+                feature_col = "Return"
+            
             st.success(f"Downloaded {len(data)} days of data for {ticker_symbol}")
+
+            # ML data preparation
+            # Drop rows with NaNs in feature or target columns
+            ml_data = data.dropna(subset=[feature_col, "Target"])
+            
+            # Split into X (features) and y (target)
+            X = ml_data[[feature_col]]
+            y = ml_data["Target"]
+            
+            # Split into train/test sets (80/20) without shuffling to preserve time order
+            split_idx = int(len(ml_data) * 0.8)
+            X_train = X.iloc[:split_idx]
+            X_test = X.iloc[split_idx:]
+            y_train = y.iloc[:split_idx]
+            y_test = y.iloc[split_idx:]
+            
+            # Show the split info
+            with st.expander("ML Dataset Info"):
+                st.write(f"Total clean data points: {len(ml_data)}")
+                st.write(f"Training set: {len(X_train)} samples")
+                st.write(f"Test set: {len(X_test)} samples")
+                st.write(f"Feature column: {feature_col}")
+                st.write(f"Target column: Target (Close price in {forecast_horizon} days)")
+                
+                # Show correlation between feature and target
+                correlation = ml_data[[feature_col, "Target"]].corr().iloc[0, 1]
+                st.write(f"Correlation between {feature_col} and Target: {correlation:.4f}")
 
             # Debug raw data
             with st.expander("Show raw data (head & tail)"):
@@ -87,6 +155,21 @@ if ticker_symbol:
                 )
                 fig.update_xaxes(rangeslider_visible=False)
                 st.plotly_chart(fig, use_container_width=True)
+                
+                # Plot returns
+                st.subheader(f"{feature_col} Over Time")
+                return_series = data[feature_col]
+                df_return = return_series.reset_index()
+                df_return.columns = ["Date", feature_col]
+                
+                return_fig = px.line(
+                    df_return,
+                    x="Date",
+                    y=feature_col,
+                    title=f"{ticker_symbol} {feature_col} (5 Years)",
+                )
+                return_fig.update_xaxes(rangeslider_visible=False)
+                st.plotly_chart(return_fig, use_container_width=True)
             else:
                 st.warning("Not enough data points to create a chart.")
 
