@@ -184,9 +184,6 @@ if ticker_symbol:
         if 'training_started' not in st.session_state:
             st.session_state['training_started'] = False
             
-        # Log the current session state
-        st.write(f"DEBUG: Current training state: {st.session_state['training_started']}")
-        
         # Button to start training or show training is in progress
         if not st.session_state['training_started']:
             start_training = st.button("Train Model")
@@ -214,15 +211,10 @@ if ticker_symbol:
             show_hyperparams = st.checkbox("⚙️ Show Advanced Hyperparameters", value=False)
             
             if show_hyperparams:
-                st.write("DEBUG: Hyperparams checkbox is checked")
-                st.write(f"DEBUG: Current model_type is '{model_type}'")
-                
                 if model_type == "Random Forest Regressor":
-                    st.write("DEBUG: Showing Random Forest parameters")
                     n_estimators = st.slider("RF: n_estimators", 10, 500, 100, step=10)
                     max_depth = st.slider("RF: max_depth", 1, 50, 10)
                 elif model_type == "XGBoost Regressor":
-                    st.write("DEBUG: Showing XGBoost parameters")
                     n_estimators = st.slider("XGB: n_estimators", 10, 500, 100, step=10)
                     learning_rate = st.slider("XGB: learning_rate", 0.01, 0.3, 0.1, step=0.01)
                     max_depth = st.slider("XGB: max_depth", 1, 10, 3)
@@ -276,6 +268,75 @@ if ticker_symbol:
             st.plotly_chart(fig, use_container_width=True)
             
             st.success("✅ Model trained successfully!")
+
+    # Strategy Simulator expander
+    with st.expander("🚀 Strategy Simulator", expanded=False):
+        # Trading parameters
+        entry_threshold = st.slider(
+            "Entry Threshold", 
+            min_value=-0.05, 
+            max_value=0.05, 
+            value=0.0, 
+            step=0.005
+        )
+        
+        transaction_cost = st.number_input(
+            "Transaction Cost (per trade, as fraction)",
+            min_value=0.0,
+            max_value=0.1,
+            value=0.001,
+            step=0.001,
+            format="%.4f"
+        )
+        
+        # Only show backtest results if model has been trained
+        if 'training_started' in st.session_state and st.session_state['training_started']:
+            # Backtest trading strategy
+            df_bt = pd.DataFrame({
+                "Date": X_test.index,
+                "Price": data["Close"].loc[X_test.index].values,
+                "Pred": y_pred
+            })
+            
+            # Generate signal: 1 if Pred > Price + threshold else 0
+            df_bt["Signal"] = (df_bt["Pred"] > df_bt["Price"] + entry_threshold).astype(int)
+            
+            # Daily market returns
+            df_bt["Market_Return"] = df_bt["Price"].pct_change().fillna(0)
+            
+            # Position lags the signal by one day
+            df_bt["Position"] = df_bt["Signal"].shift(1).fillna(0)
+            
+            # Raw strategy returns
+            df_bt["Strat_Return"] = df_bt["Position"] * df_bt["Market_Return"]
+            
+            # Subtract transaction costs on changes in Position
+            df_bt["Strat_Return"] -= transaction_cost * df_bt["Position"].diff().abs().fillna(0)
+            
+            # Build equity curve
+            df_bt["Equity"] = (1 + df_bt["Strat_Return"]).cumprod()
+            
+            # Compute annualized stats
+            ann_return = df_bt["Equity"].iloc[-1] ** (252/len(df_bt)) - 1
+            ann_vol    = df_bt["Strat_Return"].std() * (252**0.5)
+            sharpe     = ann_return / ann_vol
+            dd         = (df_bt["Equity"].cummax() - df_bt["Equity"]) / df_bt["Equity"].cummax()
+            max_dd     = dd.max()
+            
+            # Show via st.metric
+            r1, r2, r3, r4 = st.columns(4)
+            r1.metric("Ann Return", f"{ann_return:.2%}")
+            r2.metric("Ann Vol",    f"{ann_vol:.2%}")
+            r3.metric("Sharpe",      f"{sharpe:.2f}")
+            r4.metric("Max Drawdown", f"{max_dd:.2%}")
+            
+            # Plot equity curve
+            fig_eq = px.line(
+                df_bt, x="Date", y="Equity",
+                title="Strategy Equity Curve"
+            )
+            fig_eq.update_xaxes(rangeslider_visible=False)
+            st.plotly_chart(fig_eq, use_container_width=True)
 
     # Recent data table
     st.subheader("Recent Price Data")
