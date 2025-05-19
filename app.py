@@ -180,17 +180,69 @@ if ticker_symbol:
 
     # ML Model Training placeholder
     with st.expander("🔧 ML Model Training"):
-        if st.button("Train Model"):
+        # Initialize session state for tracking if training has been started
+        if 'training_started' not in st.session_state:
+            st.session_state['training_started'] = False
+            
+        # Log the current session state
+        st.write(f"DEBUG: Current training state: {st.session_state['training_started']}")
+        
+        # Button to start training or show training is in progress
+        if not st.session_state['training_started']:
+            start_training = st.button("Train Model")
+            if start_training:
+                st.session_state['training_started'] = True
+                st.rerun()  # Rerun to update UI with training state
+        else:
+            st.write("**Training in progress...**")
+            
+            # Allow changing model within the training section
+            model_type = st.selectbox(
+                "Choose model to train",
+                ["Linear Regression", "Random Forest Regressor", "XGBoost Regressor"],
+                index=["Linear Regression", "Random Forest Regressor", "XGBoost Regressor"].index(model_type)
+            )
+            
             st.write(f"Selected model: **{model_type}**")
+            
+            # Define default hyperparameters
+            n_estimators = 100  # Default value
+            max_depth = 10      # Default value
+            learning_rate = 0.1  # Default value for XGBoost
+            
+            # Using a checkbox instead of a nested expander
+            show_hyperparams = st.checkbox("⚙️ Show Advanced Hyperparameters", value=False)
+            
+            if show_hyperparams:
+                st.write("DEBUG: Hyperparams checkbox is checked")
+                st.write(f"DEBUG: Current model_type is '{model_type}'")
+                
+                if model_type == "Random Forest Regressor":
+                    st.write("DEBUG: Showing Random Forest parameters")
+                    n_estimators = st.slider("RF: n_estimators", 10, 500, 100, step=10)
+                    max_depth = st.slider("RF: max_depth", 1, 50, 10)
+                elif model_type == "XGBoost Regressor":
+                    st.write("DEBUG: Showing XGBoost parameters")
+                    n_estimators = st.slider("XGB: n_estimators", 10, 500, 100, step=10)
+                    learning_rate = st.slider("XGB: learning_rate", 0.01, 0.3, 0.1, step=0.01)
+                    max_depth = st.slider("XGB: max_depth", 1, 10, 3)
+                elif model_type == "Linear Regression":
+                    st.info("Linear Regression has no hyperparameters to tune.")
+            
             st.info(f"Training {model_type} on {len(X_train)} samples…")
             
+            # Reset button to allow starting over
+            if st.button("Reset Training"):
+                st.session_state['training_started'] = False
+                st.rerun()
+                
             # Instantiate the appropriate model based on selection
             if model_type == "Linear Regression":
                 model = LinearRegression()
             elif model_type == "Random Forest Regressor":
-                model = RandomForestRegressor(n_estimators=100, random_state=42)
-            else:  # XGBoost Regressor
-                model = XGBRegressor(use_label_encoder=False, eval_metric="rmse", random_state=42)
+                model = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
+            else:  # XGBoost
+                model = XGBRegressor(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, use_label_encoder=False, eval_metric="rmse", random_state=42)
             
             # Train the model
             model.fit(X_train, y_train)
