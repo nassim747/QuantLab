@@ -15,6 +15,11 @@ st.set_page_config(
     layout="wide"
 )
 
+# Data loading function with caching
+@st.cache_data(ttl=3600)
+def load_data(ticker, start, end):
+    return yf.download(ticker, start=start, end=end, auto_adjust=False, progress=False)
+
 st.title("Stock Price Tracker")
 
 # Sidebar: ML preprocessing & model selection
@@ -54,13 +59,7 @@ if ticker_symbol:
         end_date = datetime.now()
         start_date = end_date - timedelta(days=5 * 365)
         st.info(f"Downloading {ticker_symbol} data…")
-        data = yf.download(
-            ticker_symbol,
-            start=start_date,
-            end=end_date,
-            auto_adjust=False,
-            progress=False
-        )
+        data = load_data(ticker_symbol, start_date, end_date)
         
         # Handle MultiIndex columns if present
         if isinstance(data.columns, pd.MultiIndex):
@@ -179,8 +178,12 @@ if ticker_symbol:
         st.warning("Not enough data points to plot.")
 
     # ML Model Training placeholder
-    with st.expander("🔧 ML Model Training"):
-        # Initialize session state for tracking if training has been started
+    # Check if retraining is requested to determine if expander should be open
+    if 'retrain_requested' not in st.session_state:
+        st.session_state['retrain_requested'] = False
+    
+    with st.expander("🔧 ML Model Training", expanded=st.session_state.get('retrain_requested', False)):
+        # Initialize session state variables
         if 'training_started' not in st.session_state:
             st.session_state['training_started'] = False
             
@@ -189,6 +192,7 @@ if ticker_symbol:
             start_training = st.button("Train Model")
             if start_training:
                 st.session_state['training_started'] = True
+                st.session_state['retrain_requested'] = True
                 st.rerun()  # Rerun to update UI with training state
         else:
             st.write("**Training in progress...**")
@@ -221,26 +225,52 @@ if ticker_symbol:
                 elif model_type == "Linear Regression":
                     st.info("Linear Regression has no hyperparameters to tune.")
             
-            st.info(f"Training {model_type} on {len(X_train)} samples…")
+            # Retrain button
+            if st.button("Retrain Model"):
+                st.session_state['retrain_requested'] = True
+                st.rerun()
             
-            # Reset button to allow starting over
+            # Reset button to restart from scratch
             if st.button("Reset Training"):
                 st.session_state['training_started'] = False
+                st.session_state['retrain_requested'] = False
+                if 'model' in st.session_state:
+                    del st.session_state['model']
+                if 'y_pred' in st.session_state:
+                    del st.session_state['y_pred']
                 st.rerun()
+            
+            # Check if model already exists in session state or training is requested
+            retrain_requested = st.session_state['retrain_requested']
+            
+            if "model" not in st.session_state or retrain_requested:
+                # Instantiate the appropriate model based on selection
+                if model_type == "Linear Regression":
+                    model = LinearRegression()
+                elif model_type == "Random Forest Regressor":
+                    model = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
+                else:  # XGBoost
+                    model = XGBRegressor(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, use_label_encoder=False, eval_metric="rmse", random_state=42)
                 
-            # Instantiate the appropriate model based on selection
-            if model_type == "Linear Regression":
-                model = LinearRegression()
-            elif model_type == "Random Forest Regressor":
-                model = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
-            else:  # XGBoost
-                model = XGBRegressor(n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth, use_label_encoder=False, eval_metric="rmse", random_state=42)
-            
-            # Train the model
-            model.fit(X_train, y_train)
-            
-            # Make predictions
-            y_pred = model.predict(X_test)
+                # Show training status
+                st.info(f"Training {model_type} on {len(X_train)} samples…")
+                
+                # Train the model
+                with st.spinner("Training model, please wait…"):
+                    model.fit(X_train, y_train)
+                    y_pred = model.predict(X_test)
+                
+                # Store in session state
+                st.session_state["model"] = model
+                st.session_state["y_pred"] = y_pred
+                
+                # Reset retrain flag
+                st.session_state['retrain_requested'] = False
+            else:
+                # Use existing model and predictions
+                model = st.session_state["model"]
+                y_pred = st.session_state["y_pred"]
+                st.info("Using previously trained model")
             
             # Compute evaluation metrics
             mse = mean_squared_error(y_test, y_pred)
@@ -290,7 +320,10 @@ if ticker_symbol:
         )
         
         # Only show backtest results if model has been trained
-        if 'training_started' in st.session_state and st.session_state['training_started']:
+        if 'training_started' in st.session_state and st.session_state['training_started'] and 'y_pred' in st.session_state:
+            # Get predictions from session state
+            y_pred = st.session_state['y_pred']
+            
             # Backtest trading strategy
             df_bt = pd.DataFrame({
                 "Date": X_test.index,
