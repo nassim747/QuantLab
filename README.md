@@ -1,0 +1,1 @@
+Building a web-based platform that allows users to train ML models on financial time series and simulate trading strategies based on model predictions.
