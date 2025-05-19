@@ -15,12 +15,28 @@ st.set_page_config(
     layout="wide"
 )
 
+# Header with title and author info
+st.markdown(
+    """
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1 style="margin: 0;">📈 Stock Price Tracker</h1>
+      <div style="text-align: right;">
+        <span style="font-size:0.9rem; color: #555;">Built by </span>
+        <a href="https://www.linkedin.com/in/nassim-a-265944286/" target="_blank"
+           style="font-weight: bold; color: #0A66C2; text-decoration: none;">
+          Nassim Ameur
+        </a>
+      </div>
+    </div>
+    <hr style="margin-top: 0.5rem; margin-bottom: 1rem;">
+    """,
+    unsafe_allow_html=True
+)
+
 # Data loading function with caching
 @st.cache_data(ttl=3600)
 def load_data(ticker, start, end):
     return yf.download(ticker, start=start, end=end, auto_adjust=False, progress=False)
-
-st.title("Stock Price Tracker")
 
 # Sidebar: ML preprocessing & model selection
 with st.sidebar:
