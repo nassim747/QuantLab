@@ -20,6 +20,11 @@ Quant Lab is a web-based application for training machine learning models on his
 - [Launch the app on Streamlit](https://ameur-quantlab.streamlit.app/)
 - [View the source code on GitHub](https://github.com/nassim747/QuantLab)
 
+## Preview
+
+![Quant Lab Screenshot](capture.png)
+_A sample view of the model training and strategy backtest interface._
+
 ---
 
 ## Installation
