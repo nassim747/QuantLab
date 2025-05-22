@@ -228,7 +228,7 @@ if ticker_symbol:
             learning_rate = 0.1  # Default value for XGBoost
             
             # Using a checkbox instead of a nested expander
-            show_hyperparams = st.checkbox("⚙️ Show Advanced Hyperparameters", value=False)
+            show_hyperparams = st.checkbox("⚙️ Show Hyperparameters", value=False)
             
             if show_hyperparams:
                 if model_type == "Random Forest Regressor":
