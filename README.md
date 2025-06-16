@@ -1,6 +1,6 @@
 # Quant Lab – ML-Driven Trading Simulator
 
-Quant Lab is a web-based application for training machine learning models on historical stock data and simulating trading strategies based on model predictions. It bridges financial data analysis, predictive modeling, and trading performance evaluation in a single interactive interface.
+Quant Lab is a web-based application I've built for training machine learning models on historical stock data and simulating trading strategies based on model predictions. It bridges financial data analysis, predictive modeling, and trading performance evaluation in a single interactive interface.
 
 ---
 
