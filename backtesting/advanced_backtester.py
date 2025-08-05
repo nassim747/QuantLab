@@ -113,9 +113,14 @@ class AdvancedBacktester:
             if volatility is None or volatility == 0:
                 volatility = 0.02  # Default 2% volatility
             
-            # Risk-adjusted position size (inverse volatility weighting)
-            risk_adjusted_capital = available_capital / (volatility * 100)
-            shares = risk_adjusted_capital / price
+            # Risk-adjusted position size: target risk of ~2% account per trade.
+            # Position dollar value scales inversely with daily volatility.
+            # Example: at 2% vol we use full available_capital; at 4% vol we use half.
+            target_risk_pct = 0.02  # 2% target risk budget
+            risk_multiplier = target_risk_pct / max(volatility, 1e-6)
+            risk_multiplier = min(risk_multiplier, 1.0)  # never exceed available_capital
+            position_value = available_capital * risk_multiplier
+            shares = position_value / price
             
         elif self.position_sizing == PositionSizing.KELLY_CRITERION:
             # Simplified Kelly criterion (requires win rate and avg win/loss)
