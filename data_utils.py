@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import streamlit as st
+from typing import Tuple, Optional, List
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @st.cache_data(ttl=3600)
@@ -79,21 +83,44 @@ def add_technical_indicators(data):
     return data
 
 
-def prepare_ml_features(data, forecast_horizon=5, use_log_returns=False):
-    """Prepare features for machine learning."""
+def prepare_ml_features(data: pd.DataFrame, forecast_horizon: int = 5, 
+                       use_log_returns: bool = True) -> Tuple[pd.DataFrame, List[str]]:
+    """
+    Prepare features for machine learning with proper return prediction.
+    
+    Args:
+        data: Stock price DataFrame with OHLCV columns
+        forecast_horizon: Number of days ahead to predict
+        use_log_returns: Whether to use log returns (recommended for financial data)
+    
+    Returns:
+        Tuple of (ml_data DataFrame, feature_column_names)
+    """
+    logger.info(f"Preparing ML features for {len(data)} data points")
+    
     # Add technical indicators
     data = add_technical_indicators(data)
     
-    # Create target variable
-    data["Target"] = data["Close"].shift(-forecast_horizon)
-    
-    # Basic return features
+    # Create return-based target variable (CRITICAL FIX)
     if use_log_returns:
-        data["LogReturn"] = np.log(data["Close"] / data["Close"].shift(1)).fillna(0)
-        return_col = "LogReturn"
+        current_return = np.log(data["Close"] / data["Close"].shift(1)).fillna(0)
+        future_return = np.log(data["Close"].shift(-forecast_horizon) / data["Close"]).fillna(0)
+        data["Target"] = future_return
+        data["CurrentReturn"] = current_return
+        return_col = "CurrentReturn"
+        logger.info("Using log returns for target prediction")
     else:
-        data["Return"] = data["Close"].pct_change().fillna(0)
-        return_col = "Return"
+        current_return = data["Close"].pct_change().fillna(0)
+        future_return = (data["Close"].shift(-forecast_horizon) / data["Close"] - 1).fillna(0)
+        data["Target"] = future_return
+        data["CurrentReturn"] = current_return
+        return_col = "CurrentReturn"
+        logger.info("Using simple returns for target prediction")
+    
+    # Add volatility features
+    for window in [5, 10, 20]:
+        data[f'Return_Vol_{window}'] = current_return.rolling(window).std()
+        data[f'Price_Vol_{window}'] = data['Close'].pct_change().rolling(window).std()
     
     # Define feature columns (excluding target and basic price columns)
     feature_cols = [
@@ -109,7 +136,8 @@ def prepare_ml_features(data, forecast_horizon=5, use_log_returns=False):
     for window in [5, 10, 20]:
         feature_cols.extend([
             f'Return_Mean_{window}', f'Return_Std_{window}',
-            f'Price_Min_{window}', f'Price_Max_{window}'
+            f'Price_Min_{window}', f'Price_Max_{window}',
+            f'Return_Vol_{window}', f'Price_Vol_{window}'
         ])
     
     # Add volume features if available

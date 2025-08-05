@@ -3,6 +3,7 @@ streamlit>=1.28.0
 yfinance>=0.2.18
 pandas>=2.0.0
 numpy>=1.24.0
+pyyaml>=6.0
 
 # Machine Learning
 scikit-learn>=1.3.0
@@ -11,6 +12,11 @@ xgboost>=1.7.0
 # Visualization
 plotly>=5.15.0
 matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Portfolio optimization
+scipy>=1.11.0
+cvxpy>=1.3.0  # For advanced optimization
 
 # Advanced ML Models (optional - install separately if needed)
 # tensorflow>=2.13.0  # For LSTM models
@@ -19,11 +25,14 @@ matplotlib>=3.7.0
 # Development and Testing
 pytest>=7.4.0
 pytest-cov>=4.1.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
 
 # Data processing and technical indicators
-scipy>=1.11.0
 ta-lib  # Technical analysis library (optional, requires separate installation)
 
 # Additional utilities
 python-dateutil>=2.8.2
 requests>=2.31.0
+dataclasses-json>=0.6.0  # For advanced data structures

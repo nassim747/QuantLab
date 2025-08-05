@@ -1,0 +1,42 @@
+2025-08-04 17:27:36,009 - components.data_handler - INFO - __init__:22 - DataHandler initialized
+2025-08-04 17:27:36,010 - ml_models - INFO - __init__:47 - Initialized MLModelTrainer with scaling: True
+2025-08-04 17:27:36,010 - components.ml_pipeline - INFO - __init__:20 - MLPipeline initialized
+2025-08-04 17:27:36,011 - components.strategy_manager - INFO - __init__:20 - StrategyManager initialized
+2025-08-04 17:27:36,011 - components.data_handler - INFO - __init__:22 - DataHandler initialized
+2025-08-04 17:27:36,012 - components.portfolio_manager - INFO - __init__:21 - PortfolioManager initialized
+2025-08-04 17:27:36,013 - components.visualization - INFO - __init__:27 - Visualizer initialized
+2025-08-04 17:27:36,016 - __main__ - INFO - __init__:99 - QuantLab Professional initialized
+2025-08-04 17:27:36,033 - __main__ - ERROR - run:311 - Application error: All numerical arguments must be of the same type.
+`value` has float type.
+`min_value` has int type.
+`step` has int type.
+2025-08-04 17:54:12,982 - components.data_handler - INFO - __init__:22 - DataHandler initialized
+2025-08-04 17:54:12,983 - ml_models - INFO - __init__:47 - Initialized MLModelTrainer with scaling: True
+2025-08-04 17:54:12,983 - components.ml_pipeline - INFO - __init__:20 - MLPipeline initialized
+2025-08-04 17:54:12,984 - components.strategy_manager - INFO - __init__:20 - StrategyManager initialized
+2025-08-04 17:54:12,984 - components.data_handler - INFO - __init__:22 - DataHandler initialized
+2025-08-04 17:54:12,984 - components.portfolio_manager - INFO - __init__:21 - PortfolioManager initialized
+2025-08-04 17:54:12,984 - components.visualization - INFO - __init__:27 - Visualizer initialized
+2025-08-04 17:54:12,985 - __main__ - INFO - __init__:99 - QuantLab Professional initialized
+2025-08-04 17:54:13,016 - __main__ - ERROR - load_and_process_data:265 - Error loading data: Cannot hash argument 'self' (of type `components.data_handler.DataHandler`) in 'load_data'.
+
+To address this, you can tell Streamlit not to hash this argument by adding a
+leading underscore to the argument's name in the function signature:
+
+```
+@st.cache_data
+def load_data(_self, ...):
+    ...
+```
+            
+2025-08-04 17:55:41,893 - components.data_handler - INFO - __init__:49 - DataHandler initialized
+2025-08-04 17:55:41,893 - ml_models - INFO - __init__:47 - Initialized MLModelTrainer with scaling: True
+2025-08-04 17:55:41,894 - components.ml_pipeline - INFO - __init__:20 - MLPipeline initialized
+2025-08-04 17:55:41,894 - components.strategy_manager - INFO - __init__:20 - StrategyManager initialized
+2025-08-04 17:55:41,895 - components.data_handler - INFO - __init__:49 - DataHandler initialized
+2025-08-04 17:55:41,895 - components.portfolio_manager - INFO - __init__:21 - PortfolioManager initialized
+2025-08-04 17:55:41,896 - components.visualization - INFO - __init__:27 - Visualizer initialized
+2025-08-04 17:55:41,897 - __main__ - INFO - __init__:99 - QuantLab Professional initialized
+2025-08-04 17:55:41,911 - components.data_handler - INFO - load_data:66 - Loading data for AAPL from 2020-08-05 to 2025-08-04
+2025-08-04 17:55:42,687 - components.data_handler - INFO - load_data:78 - Successfully loaded 1254 data points for AAPL
+2025-08-04 17:55:42,741 - components.data_handler - INFO - process_data:200 - Processed data with 40 features

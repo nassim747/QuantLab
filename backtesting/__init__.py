@@ -1,0 +1,3 @@
+"""
+QuantLab Backtesting Package
+"""

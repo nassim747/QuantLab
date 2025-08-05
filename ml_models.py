@@ -4,75 +4,140 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.preprocessing import StandardScaler
 from xgboost import XGBRegressor
 import streamlit as st
+from typing import Dict, List, Tuple, Optional, Union, Any
+from dataclasses import dataclass
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+@dataclass
+class ModelMetrics:
+    """Container for model evaluation metrics."""
+    mse: float
+    rmse: float
+    mae: float
+    r2: float
+    hit_rate: float
+    directional_accuracy: float
 
 
 class MLModelTrainer:
-    def __init__(self):
-        self.model = None
-        self.model_type = None
-        self.feature_names = None
-        self.scaler = None
+    """
+    Enhanced ML model trainer with proper return prediction and validation.
     
-    def get_model(self, model_type, **hyperparams):
-        """Get model instance with hyperparameters."""
+    Features:
+    - Return-based prediction (not price prediction)
+    - Feature scaling and normalization
+    - Time-series aware validation
+    - Comprehensive evaluation metrics
+    """
+    
+    def __init__(self, use_scaling: bool = True):
+        self.model: Optional[Any] = None
+        self.model_type: Optional[str] = None
+        self.feature_names: Optional[List[str]] = None
+        self.scaler: Optional[StandardScaler] = StandardScaler() if use_scaling else None
+        self.use_scaling = use_scaling
+        self.is_trained = False
+        
+        logger.info(f"Initialized MLModelTrainer with scaling: {use_scaling}")
+    
+    def get_model(self, model_type: str, **hyperparams) -> Any:
+        """
+        Get model instance with hyperparameters.
+        
+        Args:
+            model_type: Type of model to create
+            **hyperparams: Model-specific hyperparameters
+        
+        Returns:
+            Configured model instance
+        """
+        logger.debug(f"Creating {model_type} with params: {hyperparams}")
+        
         if model_type == "Linear Regression":
             return LinearRegression()
         elif model_type == "Random Forest Regressor":
             return RandomForestRegressor(
                 n_estimators=hyperparams.get('n_estimators', 100),
                 max_depth=hyperparams.get('max_depth', 10),
-                random_state=42
+                min_samples_split=hyperparams.get('min_samples_split', 5),
+                min_samples_leaf=hyperparams.get('min_samples_leaf', 2),
+                random_state=42,
+                n_jobs=-1
             )
         elif model_type == "XGBoost Regressor":
             return XGBRegressor(
                 n_estimators=hyperparams.get('n_estimators', 100),
                 learning_rate=hyperparams.get('learning_rate', 0.1),
-                max_depth=hyperparams.get('max_depth', 3),
+                max_depth=hyperparams.get('max_depth', 6),
+                subsample=hyperparams.get('subsample', 0.8),
+                colsample_bytree=hyperparams.get('colsample_bytree', 0.8),
                 use_label_encoder=False,
                 eval_metric='rmse',
-                random_state=42
+                random_state=42,
+                n_jobs=-1
             )
         else:
             raise ValueError(f"Unknown model type: {model_type}")
     
     def train_model(self, X_train, y_train, model_type, **hyperparams):
-        """Train the selected model."""
+        """Train the selected model with optional feature scaling."""
+        # Fit/transform scaler if enabled
+        if self.use_scaling and self.scaler is not None:
+            X_train_scaled = pd.DataFrame(
+                self.scaler.fit_transform(X_train),
+                index=X_train.index,
+                columns=X_train.columns
+            )
+        else:
+            X_train_scaled = X_train
+
         self.model = self.get_model(model_type, **hyperparams)
         self.model_type = model_type
         self.feature_names = X_train.columns.tolist()
-        
-        self.model.fit(X_train, y_train)
+
+        self.model.fit(X_train_scaled, y_train)
+        self.is_trained = True
         return self.model
     
     def predict(self, X):
-        """Make predictions."""
+        """Make predictions on new data with the proper scaling pipeline."""
         if self.model is None:
             raise ValueError("Model must be trained before making predictions")
-        return self.model.predict(X)
+
+        if self.use_scaling and self.scaler is not None:
+            X_scaled = pd.DataFrame(
+                self.scaler.transform(X),
+                index=X.index,
+                columns=X.columns
+            )
+        else:
+            X_scaled = X
+
+        return self.model.predict(X_scaled)
     
     def evaluate_model(self, X_test, y_test):
         """Evaluate model performance."""
         y_pred = self.predict(X_test)
-        
+
         metrics = {
             'mse': mean_squared_error(y_test, y_pred),
             'rmse': np.sqrt(mean_squared_error(y_test, y_pred)),
             'mae': mean_absolute_error(y_test, y_pred),
             'r2': r2_score(y_test, y_pred)
         }
-        
-        # Financial metrics
-        price_changes = y_test.values
-        pred_changes = y_pred
-        
-        # Hit rate (percentage of correct direction predictions)
-        actual_direction = np.sign(price_changes - X_test.iloc[:, 0].values)  # Compare with current price
-        pred_direction = np.sign(pred_changes - X_test.iloc[:, 0].values)
+
+        # Hit-rate: correct forecast of return direction
+        actual_direction = np.sign(y_test)
+        pred_direction = np.sign(y_pred)
         hit_rate = np.mean(actual_direction == pred_direction)
-        metrics['hit_rate'] = hit_rate
-        
+        metrics['hit_rate'] = hit_rate if not np.isnan(hit_rate) else 0.0
+
         return metrics, y_pred
     
     def get_feature_importance(self):

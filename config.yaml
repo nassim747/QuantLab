@@ -1,0 +1,26 @@
+data:
+  default_ticker: "AAPL"
+  default_period_years: 5
+  cache_ttl_seconds: 3600
+  min_data_points: 50
+
+ml:
+  default_forecast_horizon: 5
+  test_size: 0.2
+  cv_folds: 5
+  random_state: 42
+  min_samples_for_training: 100
+
+backtest:
+  initial_capital: 10000.0
+  transaction_cost: 0.001  # 0.1%
+  slippage: 0.0005  # 0.05%
+  min_position_size: 100.0
+  max_position_pct: 0.2
+  rebalance_frequency: "daily"
+
+ui:
+  page_title: "QuantLab - Professional Trading Simulator"
+  page_icon: "📈"
+  layout: "wide"
+  theme_primary_color: "#2a5298"
