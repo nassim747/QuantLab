@@ -51,12 +51,28 @@ class QuantLabLogger:
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
-    """Get a logger instance for the given name."""
-    if name is None:
-        name = "quantlab"
-    
-    logger_instance = QuantLabLogger(name)
-    return logger_instance.get_logger()
+    """Return a module-level logger that avoids duplicate handlers.
+
+    The first call initialises the root "quantlab" logger with handlers.
+    Subsequent calls for sub-modules return child loggers that propagate
+    to the root without adding their own handlers, preventing duplicate
+    output lines across the application.
+    """
+    ROOT_NAME = "quantlab"
+
+    # Ensure root logger is initialised exactly once
+    root_logger = logging.getLogger(ROOT_NAME)
+    if not root_logger.handlers:
+        QuantLabLogger(ROOT_NAME)  # sets up handlers on root
+
+    # If caller requests specific sub-logger, return a child
+    if name and name != ROOT_NAME:
+        child_logger = root_logger.getChild(name)
+        # Child loggers should not have their own handlers
+        child_logger.propagate = True
+        return child_logger
+
+    return root_logger
 
 
 # Module-level logger for convenience
