@@ -39,52 +39,65 @@ class SimpleBacktester:
         
         # Initialize tracking variables
         cash = self.initial_capital
-        position = 0
-        portfolio_value = []
-        trades = []
-        positions = []
-        
-        for i, (date, row) in enumerate(aligned_data.iterrows()):
-            price = row['Price']
-            signal = row['Signal']
-            
-            # Current portfolio value
-            current_value = cash + position * price
-            portfolio_value.append(current_value)
-            positions.append(position)
-            
-            # Execute trades based on signals
-            if signal == 1 and position == 0:  # Buy signal and not already long
+        position = 0  # number of shares
+        portfolio_value: list[float] = []
+        cash_series: list[float] = []
+        positions: list[int] = []
+        trades: list[dict] = []
+
+        for date, row in aligned_data.iterrows():
+            price = row["Price"]
+            signal = row["Signal"]
+
+            # ------------------------------------------------------------------
+            # Execute trades FIRST so that portfolio value reflects the position
+            # held *after* acting on today’s signal.
+            # ------------------------------------------------------------------
+            if signal == 1 and position == 0:
+                # BUY – all‐in subject to transaction cost buffer
                 shares_to_buy = int((cash * (1 - self.transaction_cost)) // price)
                 if shares_to_buy > 0:
                     cost = shares_to_buy * price * (1 + self.transaction_cost)
                     cash -= cost
                     position = shares_to_buy
-                    trades.append({
-                        'date': date,
-                        'action': 'BUY',
-                        'shares': shares_to_buy,
-                        'price': price,
-                        'cost': cost
-                    })
-            
-            elif signal == -1 and position > 0:  # Sell signal and currently long
+                    trades.append(
+                        {
+                            "date": date,
+                            "action": "BUY",
+                            "shares": shares_to_buy,
+                            "price": price,
+                            "cost": cost,
+                        }
+                    )
+
+            elif signal == -1 and position > 0:
+                # SELL – close entire position
                 proceeds = position * price * (1 - self.transaction_cost)
                 cash += proceeds
-                trades.append({
-                    'date': date,
-                    'action': 'SELL',
-                    'shares': position,
-                    'price': price,
-                    'proceeds': proceeds
-                })
+                trades.append(
+                    {
+                        "date": date,
+                        "action": "SELL",
+                        "shares": position,
+                        "price": price,
+                        "proceeds": proceeds,
+                    }
+                )
                 position = 0
+
+            # ------------------------------------------------------------------
+            # Record end-of-day state
+            # ------------------------------------------------------------------
+            current_value = cash + position * price
+            portfolio_value.append(current_value)
+            cash_series.append(cash)
+            positions.append(position)
         
         # Create results DataFrame
         results_df = aligned_data.copy()
-        results_df['Portfolio_Value'] = portfolio_value
-        results_df['Position'] = positions
-        results_df['Cash'] = cash
+        results_df["Portfolio_Value"] = portfolio_value
+        results_df["Position"] = positions
+        results_df["Cash"] = cash_series
         
         # Calculate returns
         results_df['Strategy_Return'] = results_df['Portfolio_Value'].pct_change().fillna(0)

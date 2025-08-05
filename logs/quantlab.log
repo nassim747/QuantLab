@@ -40,3 +40,25 @@ def load_data(_self, ...):
 2025-08-04 17:55:41,911 - components.data_handler - INFO - load_data:66 - Loading data for AAPL from 2020-08-05 to 2025-08-04
 2025-08-04 17:55:42,687 - components.data_handler - INFO - load_data:78 - Successfully loaded 1254 data points for AAPL
 2025-08-04 17:55:42,741 - components.data_handler - INFO - process_data:200 - Processed data with 40 features
+2025-08-05 15:13:02,942 - quantlab.components.data_handler - INFO - __init__:49 - DataHandler initialized
+2025-08-05 15:13:02,943 - quantlab.ml_models - INFO - __init__:47 - Initialized MLModelTrainer with scaling: True
+2025-08-05 15:13:02,943 - quantlab.components.ml_pipeline - INFO - __init__:20 - MLPipeline initialized
+2025-08-05 15:13:02,944 - quantlab.components.strategy_manager - INFO - __init__:20 - StrategyManager initialized
+2025-08-05 15:13:02,945 - quantlab.components.data_handler - INFO - __init__:49 - DataHandler initialized
+2025-08-05 15:13:02,945 - quantlab.components.portfolio_manager - INFO - __init__:21 - PortfolioManager initialized
+2025-08-05 15:13:02,946 - quantlab.components.visualization - INFO - __init__:27 - Visualizer initialized
+2025-08-05 15:13:02,947 - quantlab.__main__ - INFO - __init__:99 - QuantLab Professional initialized
+2025-08-05 15:13:02,970 - quantlab.components.data_handler - INFO - load_data:66 - Loading data for AAPL from 2020-08-06 to 2025-08-05
+2025-08-05 15:13:04,892 - quantlab.components.data_handler - INFO - load_data:78 - Successfully loaded 1254 data points for AAPL
+2025-08-05 15:13:04,960 - quantlab.components.data_handler - INFO - process_data:200 - Processed data with 40 features
+2025-08-05 15:13:11,782 - quantlab.components.data_handler - INFO - __init__:49 - DataHandler initialized
+2025-08-05 15:13:11,783 - quantlab.ml_models - INFO - __init__:47 - Initialized MLModelTrainer with scaling: True
+2025-08-05 15:13:11,785 - quantlab.components.ml_pipeline - INFO - __init__:20 - MLPipeline initialized
+2025-08-05 15:13:11,785 - quantlab.components.strategy_manager - INFO - __init__:20 - StrategyManager initialized
+2025-08-05 15:13:11,786 - quantlab.components.data_handler - INFO - __init__:49 - DataHandler initialized
+2025-08-05 15:13:11,786 - quantlab.components.portfolio_manager - INFO - __init__:21 - PortfolioManager initialized
+2025-08-05 15:13:11,787 - quantlab.components.visualization - INFO - __init__:27 - Visualizer initialized
+2025-08-05 15:13:11,788 - quantlab.__main__ - INFO - __init__:99 - QuantLab Professional initialized
+2025-08-05 15:13:11,841 - quantlab.components.data_handler - INFO - load_data:66 - Loading data for AAPL from 2020-08-06 to 2025-08-05
+2025-08-05 15:13:11,879 - quantlab.components.data_handler - INFO - load_data:78 - Successfully loaded 1254 data points for AAPL
+2025-08-05 15:13:12,047 - quantlab.components.data_handler - INFO - process_data:200 - Processed data with 40 features
