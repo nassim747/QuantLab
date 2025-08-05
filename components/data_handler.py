@@ -6,13 +6,25 @@ import numpy as np
 import yfinance as yf
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
-import streamlit as st
 from utils.logger import get_logger
+
+# Optional Streamlit support for caching
+try:
+    import streamlit as st  # type: ignore
+    _cache = st.cache_data
+except ModuleNotFoundError:
+    st = None  # type: ignore
+
+    def _cache(ttl: int = 3600):  # type: ignore
+        def decorator(func):
+            return func
+
+        return decorator
 
 logger = get_logger(__name__)
 
 
-@st.cache_data(ttl=3600)
+@_cache(ttl=3600)
 def _cached_download_data(ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
     """Cached function for downloading single ticker stock data."""
     return yf.download(
@@ -25,7 +37,7 @@ def _cached_download_data(ticker: str, start_date: str, end_date: str) -> pd.Dat
     )
 
 
-@st.cache_data(ttl=3600)
+@_cache(ttl=3600)
 def _cached_download_multiple_data(tickers: List[str], start_date: str, end_date: str) -> pd.DataFrame:
     """Cached function for downloading multiple ticker stock data."""
     return yf.download(

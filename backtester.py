@@ -6,10 +6,21 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
+from config import config as _cfg
+
 class SimpleBacktester:
-    """Simple backtesting engine for trading strategies."""
-    
-    def __init__(self, initial_capital=10000, transaction_cost=0.001):
+    """Simple backtesting engine for trading strategies.
+
+    If *initial_capital* or *transaction_cost* are omitted they are pulled from
+    ``config.backtest`` so that a single place controls defaults.
+    """
+
+    def __init__(self, initial_capital: float | None = None, transaction_cost: float | None = None):
+        if initial_capital is None:
+            initial_capital = _cfg.backtest.initial_capital
+        if transaction_cost is None:
+            transaction_cost = _cfg.backtest.transaction_cost
+
         self.initial_capital = initial_capital
         self.transaction_cost = transaction_cost
         self.results = None

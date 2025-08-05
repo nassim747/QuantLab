@@ -46,27 +46,42 @@ class Trade:
     side: str  # 'long' or 'short'
 
 
+from config import config as _cfg
+
 class AdvancedBacktester:
     """
     Professional backtesting engine with realistic trading simulation.
-    
-    Features:
-    - Proper position sizing with risk management
-    - Transaction costs and slippage
-    - Stop-loss and take-profit orders
-    - Portfolio-level risk controls
-    - Detailed performance analytics
+    Defaults are now sourced from ``config.backtest`` so the user can tweak a
+    single YAML file instead of hunting constants across modules.
     """
-    
-    def __init__(self, 
-                 initial_capital: float = 10000.0,
-                 transaction_cost: float = 0.001,
-                 slippage: float = 0.0005,
+
+    def __init__(self,
+                 initial_capital: float | None = None,
+                 transaction_cost: float | None = None,
+                 slippage: float | None = None,
                  position_sizing: PositionSizing = PositionSizing.VOLATILITY_ADJUSTED,
-                 max_position_pct: float = 0.2,
-                 min_position_size: float = 100.0,
-                 stop_loss_pct: Optional[float] = 0.05,
-                 take_profit_pct: Optional[float] = 0.10):
+                 max_position_pct: float | None = None,
+                 min_position_size: float | None = None,
+                 stop_loss_pct: Optional[float] = None,
+                 take_profit_pct: Optional[float] = None):
+
+        # Resolve defaults from global config
+        bc = _cfg.backtest
+        if initial_capital is None:
+            initial_capital = bc.initial_capital
+        if transaction_cost is None:
+            transaction_cost = bc.transaction_cost
+        if slippage is None:
+            slippage = bc.slippage
+        if max_position_pct is None:
+            max_position_pct = bc.max_position_pct
+        if min_position_size is None:
+            min_position_size = bc.min_position_size
+        if stop_loss_pct is None:
+            stop_loss_pct = bc.stop_loss_pct if hasattr(bc, "stop_loss_pct") else 0.05
+        if take_profit_pct is None:
+            take_profit_pct = bc.take_profit_pct if hasattr(bc, "take_profit_pct") else 0.10
+
         
         self.initial_capital = initial_capital
         self.transaction_cost = transaction_cost

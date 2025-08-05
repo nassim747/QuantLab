@@ -2,14 +2,29 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-import streamlit as st
 from typing import Tuple, Optional, List
 from utils.logger import get_logger
+
+# ---------------------------------------------------------------------------
+# Optional Streamlit integration: if Streamlit is available we use its cache,
+# otherwise a no-op decorator so the module works in any environment.
+# ---------------------------------------------------------------------------
+try:
+    import streamlit as st  # type: ignore
+    _cache = st.cache_data  # pylint: disable=invalid-name
+except ModuleNotFoundError:  # pragma: no cover – executed in non-Streamlit environments
+    st = None  # type: ignore
+
+    def _cache(ttl: int = 3600):  # type: ignore
+        def decorator(func):
+            return func
+
+        return decorator
 
 logger = get_logger(__name__)
 
 
-@st.cache_data(ttl=3600)
+@_cache(ttl=3600)
 def load_stock_data(ticker, start_date, end_date):
     """Load stock data from Yahoo Finance with caching."""
     return yf.download(ticker, start=start_date, end=end_date, auto_adjust=False, progress=False)

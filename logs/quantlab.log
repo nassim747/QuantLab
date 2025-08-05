@@ -62,3 +62,36 @@ def load_data(_self, ...):
 2025-08-05 15:13:11,841 - quantlab.components.data_handler - INFO - load_data:66 - Loading data for AAPL from 2020-08-06 to 2025-08-05
 2025-08-05 15:13:11,879 - quantlab.components.data_handler - INFO - load_data:78 - Successfully loaded 1254 data points for AAPL
 2025-08-05 15:13:12,047 - quantlab.components.data_handler - INFO - process_data:200 - Processed data with 40 features
+2025-08-05 15:17:43,011 - quantlab.components.data_handler - INFO - __init__:61 - DataHandler initialized
+2025-08-05 15:17:43,011 - quantlab.ml_models - INFO - __init__:47 - Initialized MLModelTrainer with scaling: True
+2025-08-05 15:17:43,012 - quantlab.components.ml_pipeline - INFO - __init__:20 - MLPipeline initialized
+2025-08-05 15:17:43,013 - quantlab.components.strategy_manager - INFO - __init__:20 - StrategyManager initialized
+2025-08-05 15:17:43,013 - quantlab.components.data_handler - INFO - __init__:61 - DataHandler initialized
+2025-08-05 15:17:43,013 - quantlab.components.portfolio_manager - INFO - __init__:21 - PortfolioManager initialized
+2025-08-05 15:17:43,014 - quantlab.components.visualization - INFO - __init__:27 - Visualizer initialized
+2025-08-05 15:17:43,015 - quantlab.__main__ - INFO - __init__:99 - QuantLab Professional initialized
+2025-08-05 15:17:43,031 - quantlab.components.data_handler - INFO - load_data:78 - Loading data for AAPL from 2020-08-06 to 2025-08-05
+2025-08-05 15:17:43,807 - quantlab.components.data_handler - INFO - load_data:90 - Successfully loaded 1254 data points for AAPL
+2025-08-05 15:17:43,881 - quantlab.components.data_handler - INFO - process_data:212 - Processed data with 40 features
+2025-08-05 15:18:16,739 - quantlab.components.data_handler - INFO - __init__:61 - DataHandler initialized
+2025-08-05 15:18:16,740 - quantlab.ml_models - INFO - __init__:47 - Initialized MLModelTrainer with scaling: True
+2025-08-05 15:18:16,741 - quantlab.components.ml_pipeline - INFO - __init__:20 - MLPipeline initialized
+2025-08-05 15:18:16,741 - quantlab.components.strategy_manager - INFO - __init__:20 - StrategyManager initialized
+2025-08-05 15:18:16,742 - quantlab.components.data_handler - INFO - __init__:61 - DataHandler initialized
+2025-08-05 15:18:16,742 - quantlab.components.portfolio_manager - INFO - __init__:21 - PortfolioManager initialized
+2025-08-05 15:18:16,743 - quantlab.components.visualization - INFO - __init__:27 - Visualizer initialized
+2025-08-05 15:18:16,743 - quantlab.__main__ - INFO - __init__:99 - QuantLab Professional initialized
+2025-08-05 15:18:16,760 - quantlab.components.data_handler - INFO - load_data:78 - Loading data for AAPL from 2020-08-06 to 2025-08-05
+2025-08-05 15:18:16,777 - quantlab.components.data_handler - INFO - load_data:90 - Successfully loaded 1254 data points for AAPL
+2025-08-05 15:18:16,838 - quantlab.components.data_handler - INFO - process_data:212 - Processed data with 40 features
+2025-08-05 15:18:17,447 - quantlab.components.portfolio_manager - INFO - optimize_portfolio:36 - Optimizing portfolio for 4 assets
+2025-08-05 15:18:17,448 - quantlab.components.data_handler - INFO - load_multiple_tickers:114 - Loading data for 4 tickers
+2025-08-05 15:18:17,871 - quantlab.components.data_handler - INFO - load_multiple_tickers:134 - Successfully loaded data for 4 tickers
+2025-08-05 15:18:17,884 - quantlab.portfolio.optimization - INFO - __init__:61 - Initialized optimizer for 4 assets
+2025-08-05 15:18:17,884 - quantlab.components.portfolio_manager - INFO - optimize_portfolio:73 - Running Max Sharpe optimization
+2025-08-05 15:18:17,932 - quantlab.components.portfolio_manager - INFO - optimize_portfolio:77 - Max Sharpe - Sharpe: 0.79, Return: 22.66%, Vol: 26.10%
+2025-08-05 15:18:17,933 - quantlab.components.portfolio_manager - INFO - optimize_portfolio:73 - Running Min Variance optimization
+2025-08-05 15:18:17,982 - quantlab.components.portfolio_manager - INFO - optimize_portfolio:77 - Min Variance - Sharpe: 0.73, Return: 20.30%, Vol: 25.01%
+2025-08-05 15:18:17,983 - quantlab.components.portfolio_manager - INFO - optimize_portfolio:73 - Running Risk Parity optimization
+2025-08-05 15:18:18,002 - quantlab.components.portfolio_manager - INFO - optimize_portfolio:77 - Risk Parity - Sharpe: 0.64, Return: 18.62%, Vol: 25.93%
+2025-08-05 15:18:19,649 - quantlab.__main__ - ERROR - run:311 - Application error: 'DataFrame' object has no attribute 'expected_return'
